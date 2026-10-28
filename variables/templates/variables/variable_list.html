@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Environment Variables | ENVAULT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Environment Variables</h2>
+            <p class="text-muted">{{ environment }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'variable_create' environment.id %}"
+               class="btn btn-primary">+ Add Variable</a>
+            <a href="{% url 'variable_history' environment.id %}"
+               class="btn btn-outline-secondary">View History</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5>Import .env Variables</h5>
+            <p class="text-muted small">
+                Paste your KEY=value entries below. Comments and blank lines
+                will be ignored.
+            </p>
+            <form method="POST" action="{% url 'variable_import' environment.id %}">
+                {% csrf_token %}
+                <textarea name="env_text" class="form-control mb-3"
+                          rows="6" placeholder="DATABASE_URL=...
+API_KEY=...
+# This is a comment" required></textarea>
+                <button type="submit" class="btn btn-outline-primary">
+                    Preview Import
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if variables %}
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variable in variables %}
+                    <tr>
+                        <td>{{ variable.key }}</td>
+                        <td>
+                            {% if variable.variable_type == "sensitive" %}
+                                <span id="secret-{{ variable.id }}">••••••••</span>
+                                {% if can_reveal_secrets %}
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        id="reveal-button-{{ variable.id }}"
+                                        data-url="{% url 'reveal_variable' variable.id %}"
+                                        data-variable-id="{{ variable.id }}"
+                                        onclick="revealSecret(this.dataset.variableId)">
+                                    Reveal
+                                </button>
+                                {% endif %}
+                            {% else %}
+                                {{ variable.value }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if variable.variable_type == "sensitive" %}
+                                <span class="badge bg-danger">Sensitive</span>
+                            {% else %}
+                                <span class="badge bg-success">Standard</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'variable_edit' variable.id %}"
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'variable_delete' variable.id %}"
+                               class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p class="text-muted text-center mb-0">
+                    No variables found. Add your first variable!
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+async function revealSecret(variableId) {
+    const button = document.getElementById(`reveal-button-${variableId}`);
+    const valueElement = document.getElementById(`secret-${variableId}`);
+
+    if (button.dataset.revealed === "true") {
+        valueElement.textContent = "••••••••";
+        button.textContent = "Reveal";
+        button.dataset.revealed = "false";
+        return;
+    }
+
+    try {
+        const response = await fetch(button.dataset.url);
+        if (!response.ok) {
+            alert("You don't have permission to reveal this secret.");
+            return;
+        }
+
+        const data = await response.json();
+        valueElement.textContent = data.value;
+        button.textContent = "Hide";
+        button.dataset.revealed = "true";
+    } catch (error) {
+        alert("Unable to retrieve the secret.");
+    }
+}
+</script>
+</body>
+</html>
