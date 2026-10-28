@@ -36,6 +36,24 @@ ALLOWED_HOSTS = env.list(
     default=["localhost", "127.0.0.1"]
 )
 
+RENDER_EXTERNAL_HOSTNAME = env(
+    "RENDER_EXTERNAL_HOSTNAME",
+    default=""
+)
+
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[]
+)
+
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(
+        f"https://{RENDER_EXTERNAL_HOSTNAME}"
+    )
+
 
 # Application definition
 
