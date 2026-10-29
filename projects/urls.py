@@ -9,4 +9,9 @@ urlpatterns = [
     views.manage_members,
     name="manage_members",
 ),
+path(
+    "<int:project_id>/",
+    views.project_detail,
+    name="project_detail",
+),
 ]

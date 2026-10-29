@@ -6,6 +6,7 @@ from django.http import HttpResponseForbidden
 from .models import Project, ProjectMembership
 from .forms import ProjectForm
 from .membership_forms import ProjectMembershipForm
+from environments.models import Environment
 
 
 @login_required
@@ -19,6 +20,29 @@ def project_dashboard(request):
         request,
         "projects/dashboard.html",
         {"projects": projects},
+    )
+
+@login_required
+def project_detail(request, project_id):
+    project = get_object_or_404(
+        Project.objects.filter(
+            Q(owner=request.user) |
+            Q(memberships__user=request.user)
+        ).distinct(),
+        pk=project_id,
+    )
+
+    environments = project.environments.all()
+    members = project.memberships.select_related("user").all()
+
+    return render(
+        request,
+        "projects/detail.html",
+        {
+            "project": project,
+            "environments": environments,
+            "members": members,
+        },
     )
 
 

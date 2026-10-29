@@ -10,13 +10,13 @@
 
     <style>
         body {
-            background: #f5f7fb;
+            background: #f6f5fa;
             font-family: 'Segoe UI', sans-serif;
-            color: #202938;
+            color: #252333;
         }
 
         .sidebar {
-            background: #172238;
+            background: #211f2d;
             min-height: 100vh;
             color: white;
             padding: 30px 22px;
@@ -31,7 +31,7 @@
 
         .sidebar-link {
             display: block;
-            color: #bdc8da;
+            color: #c9c4d8;
             text-decoration: none;
             padding: 13px 15px;
             border-radius: 8px;
@@ -40,7 +40,7 @@
 
         .sidebar-link.active,
         .sidebar-link:hover {
-            background: #293b5c;
+            background: #39334b;
             color: white;
         }
 
@@ -62,8 +62,8 @@
         .project-icon {
             width: 45px;
             height: 45px;
-            background: #e9efff;
-            color: #4169d8;
+            background: #eee9fb;
+            color: #7657c8;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -73,14 +73,14 @@
         }
 
         .btn-create {
-            background: #4169d8;
+            background: #7657c8;
             color: white;
             border-radius: 8px;
             padding: 11px 20px;
         }
 
         .btn-create:hover {
-            background: #3155bb;
+            background: #6244ae;
             color: white;
         }
 
@@ -118,16 +118,130 @@
 
             <hr class="border-secondary my-4">
 
-            <div class="small text-uppercase text-secondary mb-3">
-                Account
-            </div>
+           <div class="small text-uppercase text-secondary mb-3">
+    Account
+</div>
 
-            <span class="sidebar-link">
-                ◉ &nbsp; {{ request.user.username }}
-            </span>
+<span class="sidebar-link">
+    ◉ &nbsp; {{ request.user.username }}
+</span>
+
+<a href="{% url 'user_logout' %}" class="sidebar-link">
+    ↪ &nbsp; Sign Out
+</a>
         </aside>
 
         <main class="col-md-9 col-lg-10 main-content">
+            {% if project %}
+
+    <div class="mb-4">
+        <a href="{% url 'project_dashboard' %}"
+           class="text-decoration-none text-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="d-flex justify-content-between flex-wrap gap-3">
+            <div>
+                <span class="text-primary small fw-bold">
+                    PROJECT OVERVIEW
+                </span>
+
+                <h2 class="fw-bold mt-2">{{ project.name }}</h2>
+
+                <p class="text-secondary">
+                    {{ project.description|default:"No description provided." }}
+                </p>
+
+                <small class="text-secondary">
+                    Created {{ project.created_at|date:"d M Y" }}
+                </small>
+            </div>
+
+            {% if project.owner == request.user %}
+                <a href="{% url 'manage_members' project.id %}"
+                   class="btn btn-outline-primary align-self-start">
+                    Manage Members
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-3">Environments</h5>
+
+    <div class="row g-3 mb-4">
+
+        {% for environment in environments %}
+
+            <div class="col-md-4">
+                <a href="{% url 'variable_list' environment.id %}"
+                   class="card border-0 shadow-sm rounded-4 p-4 text-decoration-none text-dark h-100">
+
+                    <h6 class="fw-bold">
+                        {{ environment.get_name_display }}
+                    </h6>
+
+                    <p class="text-secondary small mb-0">
+                        Manage your environment variables
+                    </p>
+
+                    <span class="text-primary small mt-3">
+                        View Variables →
+                    </span>
+
+                </a>
+            </div>
+
+        {% empty %}
+
+            <p class="text-secondary">
+                No environments available.
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+
+        <h5 class="fw-bold mb-3">Project Team</h5>
+
+        <div class="mb-3">
+            <strong>{{ project.owner.username }}</strong>
+            <span class="badge bg-primary">Owner</span>
+            <div class="small text-secondary">
+                {{ project.owner.email }}
+            </div>
+        </div>
+
+        <hr>
+
+        {% for membership in members %}
+
+            <div class="mb-3">
+                <strong>{{ membership.user.username }}</strong>
+
+                <span class="badge bg-light text-dark">
+                    {{ membership.get_role_display }}
+                </span>
+
+                <div class="small text-secondary">
+                    {{ membership.user.email }}
+                </div>
+            </div>
+
+        {% empty %}
+
+            <p class="text-secondary mb-0">
+                No additional team members.
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+{% else %}
 
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-5">
                 <div>
@@ -162,8 +276,11 @@
                                 </div>
 
                                 <h5 class="fw-bold">
-                                    {{ project.name }}
-                                </h5>
+    <a href="{% url 'project_detail' project.id %}"
+       class="text-decoration-none text-dark">
+        {{ project.name }}
+    </a>
+</h5>
 
                                 <p class="text-secondary small mb-4">
                                     {{ project.description|default:"No description provided." }}
@@ -214,7 +331,7 @@
                 {% endfor %}
 
             </div>
-
+{% endif %}
         </main>
     </div>
 </div>
