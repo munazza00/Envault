@@ -37,7 +37,7 @@ def project_detail(request, project_id):
 
     return render(
         request,
-        "projects/detail.html",
+        "projects/dashboard.html",
         {
             "project": project,
             "environments": environments,
